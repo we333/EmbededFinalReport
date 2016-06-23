@@ -25,18 +25,6 @@ public class MainActivity extends AppCompatActivity
     CheckBox monitorEnable;
     TextView res;
 
-    // action loop for checking DoorStatus
-    private Handler handler = new Handler();
-    private Runnable task =new Runnable()
-    {
-        public void run()
-        {
-            handler.postDelayed(this,2000);
-            if(monitorEnable.isChecked())
-                new DoorMonitor().execute();
-        }
-    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -47,82 +35,63 @@ public class MainActivity extends AppCompatActivity
         btnBuzOff = (Button)findViewById(R.id.btn_buz_off);
         btnDoorStatus = (Button)findViewById(R.id.btn_door_status);
         monitorEnable = (CheckBox)findViewById(R.id.checkBox);
+        res = (TextView) findViewById(R.id.textView);
 
         handler.post(task);     // action loop for checking DoorStatus
 
-        btnDoorStatus.setOnClickListener(new View.OnClickListener()
+        btnBuzOn.setOnClickListener(listener);
+        btnBuzOff.setOnClickListener(listener);
+        btnDoorStatus.setOnClickListener(listener);
+    }
+
+    // action background loop for checking DoorStatus
+    private Handler handler = new Handler();
+    private Runnable task =new Runnable()
+    {
+        public void run()
         {
-            @Override
-            public void onClick(final View v)
+            handler.postDelayed(this,2000); // check DoorStatus each 2s
+            if(monitorEnable.isChecked())
+                new DoorMonitor().execute();
+        }
+    };
+
+    private View.OnClickListener listener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v)
+        {
+            if(v.getId() == R.id.btn_buz_on)
+            {
+                (new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ClientCallServer("A");
+                    }
+                })).start();
+            }
+            else if(v.getId() == R.id.btn_buz_off)
+            {
+                (new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ClientCallServer("B");
+                    }
+                })).start();
+            }
+            else if(v.getId() == R.id.btn_door_status)
             {
                 new CheckDoorStatus().execute();
             }
-        });
+            else ;
+        }
+    };
 
-        res = (TextView) findViewById(R.id.textView);
-
-        btnBuzOn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                (new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try
-                        {
-                            Socket socket=new Socket("192.168.0.104",14000);
-                            PrintWriter os=new PrintWriter(socket.getOutputStream());
-                            BufferedReader is=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-                            String readline = new String("A");  // PIN_OUTPUT set ON
-
-                            os.println(readline);		// 命令字符串输出到Server
-                            os.flush();					// 刷新后,Server可以马上收到字符串
-                            System.out.println("Client:"+readline);
-                            System.out.println("Server:"+is.readLine());	// 从Server得到字符串
-
-                            os.close();
-                            is.close();
-                            socket.close();
-                        }catch (IOException e) {e.printStackTrace();}
-                    }
-                })).start();
-            }
-        });
-
-        btnBuzOff.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                (new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try
-                        {
-                            Socket socket=new Socket("192.168.0.104",14000);
-                            PrintWriter os=new PrintWriter(socket.getOutputStream());
-                            BufferedReader is=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-                            String readline = new String("B");  // PIN_OUTPUT set OFF
-
-                            os.println(readline);		// 命令字符串输出到Server
-                            os.flush();					// 刷新后,Server可以马上收到字符串
-                            System.out.println("Client:"+readline);
-                            System.out.println("Server:"+is.readLine());	// 从Server得到字符串
-
-                            os.close();
-                            is.close();
-                            socket.close();
-                        }catch (IOException e) {e.printStackTrace();}
-                    }
-                })).start();
-            }
-        });
-    }
-
+    // Extends AsyncTask because using MainThread UI Control
     private class DoorMonitor extends AsyncTask<String, Void, Integer>
     {
         protected Integer doInBackground(String... urls)
         {
-            return ClientCallServer();
+            return ClientCallServer("C");
         }
         protected void onPostExecute(Integer sum)
         {
@@ -141,11 +110,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    // Extends AsyncTask because using MainThread UI Control
     private class CheckDoorStatus extends AsyncTask<String, Void, Integer>
     {
         protected Integer doInBackground(String... urls)
         {
-            return ClientCallServer();
+            return ClientCallServer("C");
         }
         protected void onPostExecute(Integer sum)
         {
@@ -164,7 +134,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private Integer ClientCallServer()
+    private Integer ClientCallServer(String cmd)
     {
         Boolean isOpeing = false;
         try
@@ -173,7 +143,7 @@ public class MainActivity extends AppCompatActivity
             PrintWriter os=new PrintWriter(socket.getOutputStream());
             BufferedReader is=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            String readline = new String("C");
+            String readline = new String(cmd);
 
             os.println(readline);		// 命令字符串输出到Server
             os.flush();					// 刷新后,Server可以马上收到字符串

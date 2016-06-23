@@ -59,6 +59,7 @@ int main(int ac, char *av[])
 	if(0 != listen(sock_id, 1))
 		Err("listen failed");
 
+	// call buzzer for loop monitor
 	popen(buzzer_action, "r");
 
 	while(1)
@@ -79,6 +80,9 @@ int main(int ac, char *av[])
 			Err("fdopen writing failed");
 
 		sprintf(cmd, "%s", dir);
+		/*	20160624 we
+			if do not call popen(), server will close after called by client
+		*/
 		if(NULL == (pipe_fp = popen(cmd, "r")))
 			Err("popen failed");
 
