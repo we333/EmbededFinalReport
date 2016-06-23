@@ -22,6 +22,7 @@ import java.net.Socket;
 public class MainActivity extends AppCompatActivity
 {
     Button btnBuzOn, btnBuzOff, btnDoorStatus;
+    CheckBox monitorEnable;
     TextView res;
 
     // action loop for checking DoorStatus
@@ -31,7 +32,8 @@ public class MainActivity extends AppCompatActivity
         public void run()
         {
             handler.postDelayed(this,2000);
-            new DoorMonitor().execute();
+            if(monitorEnable.isChecked())
+                new DoorMonitor().execute();
         }
     };
 
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity
         btnBuzOn = (Button)findViewById(R.id.btn_buz_on);
         btnBuzOff = (Button)findViewById(R.id.btn_buz_off);
         btnDoorStatus = (Button)findViewById(R.id.btn_door_status);
+        monitorEnable = (CheckBox)findViewById(R.id.checkBox);
 
         handler.post(task);     // action loop for checking DoorStatus
 
@@ -61,56 +64,56 @@ public class MainActivity extends AppCompatActivity
         btnBuzOn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            (new Thread(new Runnable() {
-                @Override
-                public void run() {
-                try
-                {
-                    Socket socket=new Socket("192.168.0.104",14000);
-                    PrintWriter os=new PrintWriter(socket.getOutputStream());
-                    BufferedReader is=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                (new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try
+                        {
+                            Socket socket=new Socket("192.168.0.104",14000);
+                            PrintWriter os=new PrintWriter(socket.getOutputStream());
+                            BufferedReader is=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-                    String readline = new String("A");  // PIN_OUTPUT set ON
+                            String readline = new String("A");  // PIN_OUTPUT set ON
 
-                    os.println(readline);		// 命令字符串输出到Server
-                    os.flush();					// 刷新后,Server可以马上收到字符串
-                    System.out.println("Client:"+readline);
-                    System.out.println("Server:"+is.readLine());	// 从Server得到字符串
+                            os.println(readline);		// 命令字符串输出到Server
+                            os.flush();					// 刷新后,Server可以马上收到字符串
+                            System.out.println("Client:"+readline);
+                            System.out.println("Server:"+is.readLine());	// 从Server得到字符串
 
-                    os.close();
-                    is.close();
-                    socket.close();
-                }catch (IOException e) {e.printStackTrace();}
-                }
-            })).start();
+                            os.close();
+                            is.close();
+                            socket.close();
+                        }catch (IOException e) {e.printStackTrace();}
+                    }
+                })).start();
             }
         });
 
         btnBuzOff.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            (new Thread(new Runnable() {
-                @Override
-                public void run() {
-                try
-                {
-                    Socket socket=new Socket("192.168.0.104",14000);
-                    PrintWriter os=new PrintWriter(socket.getOutputStream());
-                    BufferedReader is=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                (new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try
+                        {
+                            Socket socket=new Socket("192.168.0.104",14000);
+                            PrintWriter os=new PrintWriter(socket.getOutputStream());
+                            BufferedReader is=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-                    String readline = new String("B");  // PIN_OUTPUT set OFF
+                            String readline = new String("B");  // PIN_OUTPUT set OFF
 
-                    os.println(readline);		// 命令字符串输出到Server
-                    os.flush();					// 刷新后,Server可以马上收到字符串
-                    System.out.println("Client:"+readline);
-                    System.out.println("Server:"+is.readLine());	// 从Server得到字符串
+                            os.println(readline);		// 命令字符串输出到Server
+                            os.flush();					// 刷新后,Server可以马上收到字符串
+                            System.out.println("Client:"+readline);
+                            System.out.println("Server:"+is.readLine());	// 从Server得到字符串
 
-                    os.close();
-                    is.close();
-                    socket.close();
-                }catch (IOException e) {e.printStackTrace();}
-                }
-            })).start();
+                            os.close();
+                            is.close();
+                            socket.close();
+                        }catch (IOException e) {e.printStackTrace();}
+                    }
+                })).start();
             }
         });
     }
@@ -126,8 +129,8 @@ public class MainActivity extends AppCompatActivity
             if(sum == 1)
             {
                 res.setText("Opeing");
-           //     Intent intent = new Intent(getApplicationContext(), DoorOpening.class);
-           //     startActivity(intent);
+                //     Intent intent = new Intent(getApplicationContext(), DoorOpening.class);
+                //     startActivity(intent);
             }
             else
             {
@@ -149,8 +152,8 @@ public class MainActivity extends AppCompatActivity
             if(sum == 1)
             {
                 res.setText("Opeing");
-            //    Intent intent = new Intent(getApplicationContext(), DoorOpening.class);
-            //    startActivity(intent);
+                //    Intent intent = new Intent(getApplicationContext(), DoorOpening.class);
+                //    startActivity(intent);
             }
             else
             {
