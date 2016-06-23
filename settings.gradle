@@ -1,0 +1,14 @@
+include ':app'
+buildscript {
+
+    repositories {
+        jcenter()
+        mavenCentral()
+        // mavenLocal() // Only if you want to use your local maven repo
+    }
+
+    dependencies {
+        // classpath 'com.android.tools.build:gradle:+'
+        classpath 'com.android.tools.build:gradle:1.2.2'
+    }
+}
