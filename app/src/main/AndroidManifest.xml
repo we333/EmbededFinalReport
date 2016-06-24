@@ -17,10 +17,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".DoorOpening">
-        </activity>
-        <activity android:name=".DoorClosing">
-        </activity>
     </application>
 
 </manifest>

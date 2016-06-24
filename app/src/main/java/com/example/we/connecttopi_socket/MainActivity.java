@@ -17,10 +17,31 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
 import java.net.Socket;
+import java.util.Date;
+import java.util.Properties;
+
+import javax.activation.CommandMap;
+import javax.activation.DataHandler;
+import javax.activation.FileDataSource;
+import javax.activation.MailcapCommandMap;
+import javax.mail.BodyPart;
+import javax.mail.Multipart;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.sql.DataSource;
+
+
 
 public class MainActivity extends AppCompatActivity
 {
+    private static Boolean isDoorOpening = false;
+    private static Boolean isSendMail = false;
     Button btnBuzOn, btnBuzOff, btnDoorStatus;
     CheckBox monitorEnable;
     TextView res;
@@ -37,7 +58,7 @@ public class MainActivity extends AppCompatActivity
         monitorEnable = (CheckBox)findViewById(R.id.checkBox);
         res = (TextView) findViewById(R.id.textView);
 
-        handler.post(task);     // action loop for checking DoorStatus
+        monitor.post(task);     // action loop for checking DoorStatus
 
         btnBuzOn.setOnClickListener(listener);
         btnBuzOff.setOnClickListener(listener);
@@ -45,14 +66,21 @@ public class MainActivity extends AppCompatActivity
     }
 
     // action background loop for checking DoorStatus
-    private Handler handler = new Handler();
+    private Handler monitor = new Handler();
     private Runnable task =new Runnable()
     {
         public void run()
         {
-            handler.postDelayed(this,2000); // check DoorStatus each 2s
+            monitor.postDelayed(this,2000); // check DoorStatus each 2s
             if(monitorEnable.isChecked())
+            {
                 new DoorMonitor().execute();
+                if(isDoorOpening && !isSendMail)
+                {
+                    isSendMail = true;
+                    new SendMail().execute();
+                }
+            }
         }
     };
 
@@ -64,8 +92,7 @@ public class MainActivity extends AppCompatActivity
             {
                 (new Thread(new Runnable() {
                     @Override
-                    public void run() {
-                        ClientCallServer("A");
+                    public void run() {ClientCallServer("A");
                     }
                 })).start();
             }
@@ -73,18 +100,46 @@ public class MainActivity extends AppCompatActivity
             {
                 (new Thread(new Runnable() {
                     @Override
-                    public void run() {
-                        ClientCallServer("B");
+                    public void run() {ClientCallServer("B");
                     }
                 })).start();
             }
             else if(v.getId() == R.id.btn_door_status)
             {
-                new CheckDoorStatus().execute();
+                new DoorMonitor().execute();
             }
             else ;
         }
     };
+
+    private class SendMail extends AsyncTask<Integer, Integer, String> {
+        protected void onPreExecute() {
+            Toast.makeText(getApplicationContext(), "Send Mail!", Toast.LENGTH_SHORT).show();
+            super.onPreExecute();
+        }
+        protected String doInBackground(Integer... params) {
+            Mail m = new Mail("dongzhe2015", "ribenliuxue");
+
+            String[] toArr = {"625125209@qq.com","wantone321@gmail.com"};
+            m.setTo(toArr);
+            m.setFrom("dongzhe2015@yahoo.co.jp");
+            m.setSubject("DOOR!!");
+            m.setBody("door is opening");
+
+            try {
+                //If you want add attachment use function addAttachment.
+                //m.addAttachment("/sdcard/filelocation");
+                if(m.send())
+                    System.out.println("Email was sent successfully.");
+                else
+                    System.out.println("Email was not sent.");
+            } catch(Exception e) {
+                //Toast.makeText(MailApp.this, "There was a problem sending the email.", Toast.LENGTH_LONG).show();
+                Log.e("MailApp", "Could not send email", e);
+            }
+            return "";
+        }
+    }
 
     // Extends AsyncTask because using MainThread UI Control
     private class DoorMonitor extends AsyncTask<String, Void, Integer>
@@ -97,39 +152,14 @@ public class MainActivity extends AppCompatActivity
         {
             if(sum == 1)
             {
-                res.setText("Opeing");
-                //     Intent intent = new Intent(getApplicationContext(), DoorOpening.class);
-                //     startActivity(intent);
+                isDoorOpening = true;
+                res.setText("Door Opeing");
             }
             else
             {
-                res.setText("Closing");
-                //        Intent intent = new Intent(getApplicationContext(), DoorClosing.class);
-                //        startActivity(intent);
-            }
-        }
-    }
-
-    // Extends AsyncTask because using MainThread UI Control
-    private class CheckDoorStatus extends AsyncTask<String, Void, Integer>
-    {
-        protected Integer doInBackground(String... urls)
-        {
-            return ClientCallServer("C");
-        }
-        protected void onPostExecute(Integer sum)
-        {
-            if(sum == 1)
-            {
-                res.setText("Opeing");
-                //    Intent intent = new Intent(getApplicationContext(), DoorOpening.class);
-                //    startActivity(intent);
-            }
-            else
-            {
-                res.setText("Closing");
-                //        Intent intent = new Intent(getApplicationContext(), DoorClosing.class);
-                //        startActivity(intent);
+                isDoorOpening = false;
+                isSendMail = false;
+                res.setText("Door Closing");
             }
         }
     }
@@ -145,8 +175,8 @@ public class MainActivity extends AppCompatActivity
 
             String readline = new String(cmd);
 
-            os.println(readline);		// 命令字符串输出到Server
-            os.flush();					// 刷新后,Server可以马上收到字符串
+            os.println(readline);       // 命令字符串输出到Server
+            os.flush();                 // 刷新后,Server可以马上收到字符串
 
             String status = new String(is.readLine());
             String result = new String("F");
