@@ -12,3 +12,6 @@ Hardware: Buzzer & MagneticSwitch
 
 
 Communication: Socket
+
+
+Function: Android mail to owner & Buzzer launch when DoorMonitor detected the door is opening
