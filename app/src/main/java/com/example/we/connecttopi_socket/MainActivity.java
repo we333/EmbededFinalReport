@@ -1,18 +1,25 @@
 package com.example.we.connecttopi_socket;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -46,6 +53,24 @@ public class MainActivity extends AppCompatActivity
     CheckBox monitorEnable;
     TextView res;
 
+    private void CloseToOpen()
+    {
+        final ImageView imageview=(ImageView)findViewById(R.id.imgclose);
+
+        Animation animation=AnimationUtils.loadAnimation(this, R.anim.actout);//ImgOpenDoor
+        imageview.startAnimation(animation);
+        animation.setFillAfter(true);
+    }
+
+    private void OpenToClose()
+    {
+        final ImageView imageview=(ImageView)findViewById(R.id.imgclose);
+
+        Animation animation= AnimationUtils.loadAnimation(this, R.anim.actin);//ImgCloseDoor
+        imageview.startAnimation(animation);
+        animation.setFillAfter(true);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -71,16 +96,17 @@ public class MainActivity extends AppCompatActivity
     {
         public void run()
         {
-            monitor.postDelayed(this,2000); // check DoorStatus each 2s
-            if(monitorEnable.isChecked())
+        monitor.postDelayed(this,1000); // check DoorStatus each 1s
+        if(monitorEnable.isChecked())
+        {
+            new DoorMonitor().execute();
+            if(isDoorOpening && !isSendMail)
             {
-                new DoorMonitor().execute();
-                if(isDoorOpening && !isSendMail)
-                {
-                    isSendMail = true;
-                    new SendMail().execute();
-                }
+                isSendMail = true;
+                CloseToOpen();
+                new SendMail().execute();
             }
+        }
         }
     };
 
@@ -88,27 +114,25 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onClick(View v)
         {
-            if(v.getId() == R.id.btn_buz_on)
-            {
-                (new Thread(new Runnable() {
-                    @Override
-                    public void run() {ClientCallServer("A");
-                    }
-                })).start();
-            }
-            else if(v.getId() == R.id.btn_buz_off)
-            {
-                (new Thread(new Runnable() {
-                    @Override
-                    public void run() {ClientCallServer("B");
-                    }
-                })).start();
-            }
-            else if(v.getId() == R.id.btn_door_status)
-            {
-                new DoorMonitor().execute();
-            }
-            else ;
+        if(v.getId() == R.id.btn_buz_on)
+        {
+            (new Thread(new Runnable() {
+                @Override
+                public void run() {SendCmdToServer("A");}
+            })).start();
+        }
+        else if(v.getId() == R.id.btn_buz_off)
+        {
+            (new Thread(new Runnable() {
+                @Override
+                public void run() {SendCmdToServer("B");}
+            })).start();
+        }
+        else if(v.getId() == R.id.btn_door_status)
+        {
+            new DoorMonitor().execute();
+        }
+        else ;
         }
     };
 
@@ -150,13 +174,15 @@ public class MainActivity extends AppCompatActivity
         }
         protected void onPostExecute(Integer sum)
         {
-            if(sum == 1)
+            if(sum == 1)    // close ti open
             {
                 isDoorOpening = true;
                 res.setText("Door Opeing");
             }
-            else
+            else            // open to close
             {
+                if(isDoorOpening)
+                    OpenToClose();
                 isDoorOpening = false;
                 isSendMail = false;
                 res.setText("Door Closing");
@@ -178,13 +204,16 @@ public class MainActivity extends AppCompatActivity
             os.println(readline);       // 命令字符串输出到Server
             os.flush();                 // 刷新后,Server可以马上收到字符串
 
-            String status = new String(is.readLine());
-            String result = new String("F");
+            if(cmd.equals(new String("F")))
+            {
+                String status = new String(is.readLine());
+                String result = new String("F");
 
-            if(result.equals(status))
-                isOpeing = true;
-            else
-                isOpeing = false;
+                if(result.equals(status))
+                    isOpeing = true;
+                else
+                    isOpeing = false;
+            }
 
             os.close();
             is.close();
@@ -193,5 +222,24 @@ public class MainActivity extends AppCompatActivity
 
         if(isOpeing)    return 1;
         else            return 0;
+    }
+
+    private void SendCmdToServer(String cmd)
+    {
+        try
+        {
+            Socket socket=new Socket("192.168.0.104",14000);
+            PrintWriter os=new PrintWriter(socket.getOutputStream());
+            BufferedReader is=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            String readline = new String(cmd);
+
+            os.println(readline);       // 命令字符串输出到Server
+            os.flush();                 // 刷新后,Server可以马上收到字符串
+
+            os.close();
+            is.close();
+            socket.close();
+        }catch (IOException e) {e.printStackTrace();}
     }
 }

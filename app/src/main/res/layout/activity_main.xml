@@ -15,19 +15,8 @@
         android:layout_height="wrap_content"
         android:text="ON"
         android:id="@+id/btn_buz_on"
-        android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="78dp"
-        android:layout_marginTop="53dp" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="OFF"
-        android:id="@+id/btn_buz_off"
-        android:layout_marginTop="59dp"
-        android:layout_below="@+id/btn_buz_on"
-        android:layout_alignStart="@+id/btn_buz_on" />
+        android:layout_marginTop="58dp"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -35,16 +24,7 @@
         android:text="DOOR"
         android:id="@+id/btn_door_status"
         android:layout_centerVertical="true"
-        android:layout_alignStart="@+id/btn_buz_off" />
-
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Monitor"
-        android:id="@+id/checkBox"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:checked="true"/>
+        android:layout_alignStart="@+id/btn_buz_on"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -52,7 +32,52 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Large Text"
         android:id="@+id/textView"
-        android:layout_alignBottom="@+id/btn_buz_off"
-        android:layout_toStartOf="@+id/checkBox"
-        android:layout_marginEnd="176dp"/>
+        android:layout_below="@+id/btn_door_status"
+        android:layout_alignEnd="@+id/btn_door_status"
+        android:layout_marginTop="121dp"/>
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Monitor"
+        android:id="@+id/checkBox"
+        android:layout_below="@+id/btn_door_status"
+        android:layout_alignParentStart="true"
+        android:checked="true"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OFF"
+        android:id="@+id/btn_buz_off"
+        android:layout_alignTop="@+id/btn_buz_on"
+        android:layout_toEndOf="@+id/btn_buz_on"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="COFFEE"
+        android:id="@+id/textView2"
+        android:layout_above="@+id/btn_buz_off"
+        android:layout_alignParentStart="true"/>
+
+    <ImageView android:id="@+id/imgopen" android:layout_width="match_parent"
+               android:layout_height="fill_parent"
+               android:contentDescription="@null" android:background="@drawable/imgopen"
+               android:nestedScrollingEnabled="true"
+               android:focusableInTouchMode="true"
+               android:layout_marginStart="314dp"
+               android:layout_alignParentBottom="true"
+               android:layout_toEndOf="@+id/textView" />
+
+    <ImageView android:id="@+id/imgclose" android:layout_width="match_parent"
+               android:layout_height="fill_parent"
+               android:contentDescription="@null" android:background="@drawable/imgclose"
+               android:nestedScrollingEnabled="true"
+               android:focusableInTouchMode="true"
+               android:layout_marginStart="314dp"
+               android:layout_alignParentBottom="true"
+               android:layout_toEndOf="@+id/textView" />
+
 </RelativeLayout>
